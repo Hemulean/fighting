@@ -21,23 +21,35 @@ const player = new Fighter({
     x: 0,
     y: 0,
   },
-});
-
-const background = new Sprite({
-  position: {
-    x: -200,
-    y: -470,
-  },
-  imageSrc: './assets/pixel.png',
-});
-const shop = new Sprite({
-  position: {
-    x: 750,
-    y: 310,
-  },
-  imageSrc: './assets/shop.png',
+  imageSrc: './assets/LeftFighter/Idle.png',
+  framesMax: 8,
   scale: 2,
-  framesMax: 1,
+  offset: {
+    x: 100,
+    y: 100,
+  },
+  sprites: {
+    idle: {
+      imageSrc: './assets/LeftFighter/Idle.png',
+      framesMax: 8,
+    },
+    run: {
+      imageSrc: './assets/LeftFighter/Run.png',
+      framesMax: 8,
+    },
+    jump: {
+      imageSrc: './assets/LeftFighter/Jump.png',
+      framesMax: 2,
+    },
+    attack: {
+      imageSrc: './assets/LeftFighter/Attack1.png',
+      framesMax: 6,
+    },
+    fall: {
+      imageSrc: './assets/LeftFighter/Fall.png',
+      framesMax: 2,
+    },
+  },
 });
 
 const enemy = new Fighter({
@@ -50,10 +62,54 @@ const enemy = new Fighter({
     y: 0,
   },
   offset: {
-    x: -50,
-    y: 0,
+    x: 100,
+    y: 100,
   },
-  color: 'blue',
+  imageSrc: './assets/RightFighter/Idle.png',
+  framesMax: 4,
+  scale: 2,
+  offset: {
+    x: 100,
+    y: 100,
+  },
+  sprites: {
+    idle: {
+      imageSrc: './assets/RightFighter/Idle.png',
+      framesMax: 4,
+    },
+    run: {
+      imageSrc: './assets/RightFighter/Run.png',
+      framesMax: 8,
+    },
+    jump: {
+      imageSrc: './assets/RightFighter/Jump.png',
+      framesMax: 2,
+    },
+    attack: {
+      imageSrc: './assets/RightFighter/Attack1.png',
+      framesMax: 4,
+    },
+    fall: {
+      imageSrc: './assets/RightFighter/Fall.png',
+      framesMax: 2,
+    },
+  },
+});
+const background = new Sprite({
+  position: {
+    x: -200,
+    y: -470,
+  },
+  imageSrc: './assets/pixel.png',
+});
+const shop = new Sprite({
+  position: {
+    x: 750,
+    y: 250,
+  },
+  imageSrc: './assets/shop_anim.png',
+  scale: 2,
+  framesMax: 6,
 });
 
 const keys = {
@@ -88,17 +144,39 @@ function animate() {
   enemy.velocity.x = 0;
 
   // player movement
+
   if (keys.a.pressed && player.lastKey === 'a') {
     player.velocity.x = -5;
+    player.switchSprite('run');
   } else if (keys.d.pressed && player.lastKey === 'd') {
     player.velocity.x = 5;
+    player.switchSprite('run');
+  } else {
+    player.switchSprite('idle');
+  }
+
+  // jumping
+  if (player.velocity.y < 0) {
+    player.switchSprite('jump');
+  } else if (player.velocity.y > 0) {
+    player.switchSprite('fall');
   }
 
   // enemy movement
   if (keys.ArrowLeft.pressed && enemy.lastKey === 'ArrowLeft') {
     enemy.velocity.x = -5;
+    enemy.switchSprite('run');
   } else if (keys.ArrowRight.pressed && enemy.lastKey === 'ArrowRight') {
     enemy.velocity.x = 5;
+    enemy.switchSprite('run');
+  } else {
+    enemy.switchSprite('idle');
+  }
+  // jumping
+  if (enemy.velocity.y < 0) {
+    enemy.switchSprite('jump');
+  } else if (enemy.velocity.y > 0) {
+    enemy.switchSprite('fall');
   }
 
   // detect for collision
@@ -110,7 +188,8 @@ function animate() {
     player.isAttacking
   ) {
     player.isAttacking = false;
-    enemy.velocity.x = 10;
+    enemy.velocity.x += 20;
+    enemy.velocity.y += -10;
     enemy.health -= 20;
     document.querySelector('#enemyHealth').style.width = enemy.health + '%';
   }
@@ -123,6 +202,7 @@ function animate() {
   ) {
     enemy.isAttacking = false;
     player.velocity.x = -10;
+    player.velocity.y = -10;
     player.health -= 20;
     document.querySelector('#playerHealth').style.width = player.health + '%';
   }
@@ -146,6 +226,7 @@ window.addEventListener('keydown', (event) => {
       break;
     case 'w':
       player.velocity.y = -20;
+
       break;
     case ' ':
       player.attack();
